@@ -8,6 +8,7 @@ function [di,D] = delta(x)
     D = diag(di)
 endfunction
 
+
 t = 1
 x = [1;1]
 A = [1 1;1 2;1 0; -1 0;0 -1]
