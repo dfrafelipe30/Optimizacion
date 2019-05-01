@@ -8,6 +8,18 @@ function [di,D] = delta(x)
     D = diag(di)
 endfunction
 
+function tmax = phi(x,d,A,b,t)
+    k = b - A*x
+    h = A * d
+    vect = []
+    for i = 1:size(h)(1)
+        residuo = h(i)/k(i)
+        if t < residuo
+            t (i) = residuo
+        end
+    end
+    tmax = min(vect)
+endfunction
 
 t = 1
 x = [1;1]
