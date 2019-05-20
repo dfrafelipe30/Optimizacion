@@ -1,8 +1,11 @@
-function y = f(x)
+/*function y = f(x)
     y = x(1) + 1.1*x(2)
+endfunction*/
+function y = f(x)
+    y = -1 * x(1) - 1.4*x(2)
 endfunction
 
-//Desigualdades
+/*Desigualdades
 function gx = g(x)
     y1 = x(1)**2 + x(2)**2 - 2
     y2 = (x(1) - 2)**2 + x(2)**2 - 2
@@ -13,7 +16,7 @@ function gr = gr1(x)
     g1 = [2*x(1);2*x(2)]
     g2 = [2*(x(1)-2);2*x(2)]
     gr = [g1 g2] 
-endfunction
+endfunction*/
 //Hesianas
 H1 = [2 0;0 2]
 H2 = [2 0;0 2]
@@ -125,44 +128,56 @@ function tmx = tmax_g(g, x, d, M)
     tmx = (a+b)/2
 endfunction // tmax_g
 
-//printf('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n=========================\n')
 x = [0.9;0]
 //x = [ 0.8905038;-0.4159503]
 tao = 10
-
-for k = 1:10
-   printf('\n\nK = %d\n',k)
-   escV(x,'X')
-   gx = g(x)
-   escV(gx,'gx')
-   fp = numderivative(f,x)
-   fp = fp'
-   [gradiente,Hessiana] = B(x,H1)
-   fpt = tao*fp +  gradiente
-   fdpt = Hessiana
-   if(norm(fpt) < 0.001) then 
-       break
-   else
-       d = -fdpt\fpt
-       //x = x + d
-       xm = x + d
-       escV(xm,"xm")
-       gxm  = g(xm)
-       escV(gxm,'gxm')
-       tm = tmax_g(g,x,d,1)
-       //disp(tm,"el valor de tm")                                    
-       if max(gxm) < 0 then 
-           x = xm
-          ´disp("El t es igual a 1")
+u = 13
+m = 2
+max_iter
+for i = 1:max_iter
+   for k = 1:10
+       printf('\n\nK = %d\n',k)
+       disp(x,"x")
+//       escV(x,'X')
+       gx = g(x)
+       escV(gx,'gx')
+       fp = numderivative(f,x)
+       fp = fp'
+       [gradiente,Hessiana] = B(x,H1)
+       fpt = tao*fp +  gradiente
+       fdpt = Hessiana
+       disp(norm(fpt),"norma_fpt")
+       if(norm(fpt) < 0.001) then 
+           break
        else
-           x = x + 0.99*tm * d     //(0.356308)*d
-           disp(tm,"El valor de tm")
-       end  
-       //disp(x)
-       //disp(d)
-       escV(x,'x')
-       escV(d,'d')
-   end
+           d = -fdpt\fpt
+           //x = x + d
+           xm = x + d
+           escV(xm,"xm")
+           gxm  = g(xm)
+           escV(gxm,'gxm')
+           tm = tmax_g(g,x,d,1)
+           disp(tm,"el valor de tm")                                    
+           if max(gxm) < 0 then 
+               x = xm
+    //           disp("El t es igual a 1")
+           else
+               x = x + 0.99*tm * d     //(0.356308)*d
+    //           disp(tm,"El valor de tm")
+           end  
+           disp(x,"x")
+           disp(d,"d")
+//           escV(x,'x')
+//           escV(d,'d')
+        end
+    end
+    disp(m/tao,"m/tao")
+    if m/tao < 0.001 then
+        break
+    else
+        tao = u * tao
+    end
 end
+
 
 
