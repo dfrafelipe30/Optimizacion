@@ -1,5 +1,12 @@
-function fx = h(x)
+/*function fx = h(x)
     fx = (x(1)-1)**4 + (x(1)+2*x(2)-3)**2 + (x(1) + 3*x(2) - x(3) + x(4) - 2)**2 + 10
+endfunction*/
+H1 = [6 -1 2 -2 0;-1 6 2 -2 0;2 2 6 1 1; -2 -2 1 6 2;0 0 1 2 7]
+c = [-5;-5;-12;-5;-10]
+A = [0 1 1 -1 1;0 2 1 2 1]
+b = [2;6]
+function fx = f(x)
+    fx = (x(1)+x(5)-4)**4 + 0.5*x'*H1*x + c'*x + 200
 endfunction
 
 function [tmn,info] = tmejor(f,x,d,tk,eps,h_ini)
@@ -92,31 +99,42 @@ function topt = backtracking(f,x,d)
     end
 endfunction
 
-A = [1 2 3 4]
+/*A = [1 2 3 4]
 b = [10]
 //x_m = [10;0;0;0]
 x_m = [0;0;0;2.5]
 B = [-2 -3 -4; 1 0 0;0 1 0;0 0 1]
-z = [0;0;0]
+z = [0;0;0]*/
 
-Como calcular B,xm,z
+//Como calcular B,xm,z
 function x = M_N_Q_I(f,A,b,Max,e) // Metodo de Newton sin desigualdades
-    x_m = A\b
-    B = kernel(A)
-    z = zeros(1,size(B)(2))
+    //x_m = A\b
+    x_m = [0;4;-2;0; 0]
+    //B = kernel(A)
+    B = [1 0 0;0 -3 0; 0 4 -1; 0  1 0; 0 0 1]
+    z = zeros(size(B)(2),1)
     for i = 1:Max
-         x = x_m + B*z
-        [gr,H] = numderivative(f,x,[],[],"blockmat")
+        disp(i,"i----------------------------")
+        disp(z,"z")
+        x = x_m + B*z
+        disp(f(x),"f")
+        disp(x,"x")
+        [gr,H] = numderivative(f,x_m + B*z,[],[],"blockmat")
         gr = gr'
+        disp(gr,"gr")
+        disp(H,"H")
         if norm(gr) < e then 
             break
         else
             grz = B' * gr
             Hz = B' * H * B
             d = -Hz\grz
-            if f(z  + d) < f(z)then
+            disp(grz,"grz")
+            disp(Hz,"Hz")
+            if f(x_m + B*(z + d)) < f(x_m + B*z)then
                 z = z + d
-            elseif gr * d < 0 then
+                disp(z,"z")
+            elseif grz'*d < 0 then
                 tk_t = tres_ptos(f,x,d,0,0.001,10,1e6)
                 tk_b = backtracking(f,x,d)
                 if tk_m == -1 then
@@ -129,3 +147,4 @@ function x = M_N_Q_I(f,A,b,Max,e) // Metodo de Newton sin desigualdades
     end
 endfunction
 
+xsol = M_N_Q_I(f,A,b,8,0.001)

@@ -42,9 +42,7 @@ function [tao1,tao2,tao3,phi_1,phi_2,phi_3] = busq_tres_ptos(f,x,d,tk,t_m,K)
 endfunction
 
 
-function fx = f(x)
-    fx = 2*x(1)**4 + (x(1)+x(2)-1)**2
-endfunction
+
 
 function tp = interpCuadr(t1,t2,t3,f1,f2,f3)
 t21 = t2 - t1
@@ -94,6 +92,10 @@ function topt = backtracking(f,x,d)
     while (f(x+t*d) > f(x) + alpha*topt*gr'*d)
         topt = bet*t
     end
+endfunction
+
+function fx = f(x)
+    fx = 2*x(1)**4 + (x(1)+x(2)-1)**2
 endfunction
 x = [3;4]
 d = [-5;-1]
