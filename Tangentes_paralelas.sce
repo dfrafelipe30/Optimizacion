@@ -6,7 +6,7 @@ function [tmn,info] = tmejor(f,x,d,tk,eps,h_ini)
     h = h_ini
     phi_k = f(x+tk*d)
     info = 0
-    tmn = 1000000
+    tmn = tk
     while(abs(h) > eps)
         if (f(x+(tk+h)*d) < phi_k)
             tmn = tk + h
@@ -62,9 +62,9 @@ endfunction
 function t_opt = tres_ptos(f,x,d,tk,eps,h_ini,K)
     while (1) //while true
     [t_m,info] = tmejor(f,x,d,tk,eps,h_ini)
-    disp(info,"info:")
+    //disp(info,"info:")
     if (info == 0)
-        t_opt = -1
+        t_opt = t_m
         disp("Parece que no hay minimizador")
         break
     else
@@ -75,23 +75,61 @@ function t_opt = tres_ptos(f,x,d,tk,eps,h_ini,K)
         else
             t_opt = tp
         end
-        disp(t_opt,"toptimo")
+        //disp(t_opt,"toptimo")
         tk = t_opt
     end
 end
 endfunction
 
-function optimo = M_T_P(x,epsilon,max_it)
+function x_optimo = M_T_P(f,x1,epsilon,max_it)
+    x_optimo = x1
     for i = 1:max_it
-        y1 = x
+        disp(i,"i----------------------------")
+        y1 = x_optimo
+        disp(y1,"y1")
         gr = numderivative(f,y1)
+        disp(gr,"gr")
         if gr <epsilon then
             break
         else
-            d1 = -gr
-            t1 = tres_ptos(f,y1,d,0,epsilon,10,1e6)
+            d1 = -gr'
+            disp(d1,"d1")
+            t1 = tres_ptos(f,y1,d1,0,epsilon,10,1e6)
+            disp(t1,"t1")
             y2 = y1+ t1 * d1 
-            for j=2:
+            yj = y2
+            yold = y1 
+            for j=2:4
+                disp(j,"j---------")
+                disp(yj,"yj")
+                grj = numderivative(f,yj)
+                if grj < epsilon then 
+                    break
+                else
+                    dj = -grj'
+                    disp(dj,"dj")
+                    tj = tres_ptos(f,yj,dj,0,epsilon,10,1e6)
+                    disp(tj,"tj")
+                    zj = yj + tj * dj
+                    disp(yold,"yold")
+                    delta = zj - yold
+                    disp(zj,"zj")
+                    disp(delta,"delta")
+                    u = tres_ptos(f,zj,delta,0,epsilon,10,1e6)
+                    disp(u,"u")
+                    yold = yj
+                    yj = zj + u*delta
+                end
+            x_optimo = yj
+            disp(x_optimo,"x_optimo")
+            end
         end
     end
 endfunction
+
+function fx=fun_obj(x)
+    fx=(0.1 * x(1)**2 + x(2)**2 + 10* x(3)**2 + 100 * x(4)**2 - 0.2 *x(1)-2 * x(2) - 20 * x(3) - 200 *x(4))
+endfunction
+
+x = [2;3;4;5]
+xsol = M_T_P(fun_obj,x,0.001,1)
