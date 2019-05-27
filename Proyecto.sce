@@ -1,26 +1,39 @@
-/*function fx = h(x)
-    fx = (x(1)-1)**4 + (x(1)+2*x(2)-3)**2 + (x(1) + 3*x(2) - x(3) + x(4) - 2)**2 + 10
+/*function y = f(x)
+    y = x(1)**4 - 11*x(1)**3 + 41*x(1)**2 - 61*x(1) + 30 + (x(1) - x(2))**2 + (x(2) + x(3) - 1)**2
 endfunction*/
-H1 = [6 -1 2 -2 0;-1 6 2 -2 0;2 2 6 1 1; -2 -2 1 6 2;0 0 1 2 7]
-c = [-5;-5;-12;-5;-10]
-A = [0 1 1 -1 1;0 2 1 2 1]
-b = [2;6]
-function fx = f(x)
-    fx = (x(1)+x(5)-4)**4 + 0.5*x'*H1*x + c'*x + 200
+/*function y = f(x)
+    y = x(1)**2 + x(2)**2 + 5*x(3)**4
+endfunction*/
+function y = f(x)
+    y = x(1)**2 + x(2) + 5*x(3)
 endfunction
+//A1 =[1 1 0]
+//b1 =[5]
+//A2 =[1 1 0 ;1 2 1]
+//b2 =[5;6]
+//A3 =[1 1 1]
+//b3 =[10]
+//A4 =[1 1 1;1 2 -1]
+//b4 =[15;10]
+//A5 =[0 1 1]
+//b5 =[10]
 
-function [tmn,info] = tmejor(f,x,d,tk,eps,h_ini)
+function sol = fz(z,x_m,B,f)
+    x = x_m + B*z
+    sol = f(x)
+endfunction
+function [tmn,info] = tmejor(f,z,d,tk,eps,h_ini,fz,B,x_m)
     h = h_ini
-    phi_k = f(x+tk*d)
+    phi_k = fz(z+tk*d,x_m,B,f)
     info = 0
-    tmn = 1000000
+    tmn = tk
     while(abs(h) > eps)
-        if (f(x+(tk+h)*d) < phi_k)
+        if (fz(z+(tk+h)*d,x_m,B,f) < phi_k)
             tmn = tk + h
             info = 1
             break
         else
-            if (f(x+(tk-h)*d) < phi_k)
+            if (fz(z+(tk-h)*d,x_m,B,f) < phi_k)
                 tmn = tk - h
                 info = 1
                 break
@@ -30,15 +43,15 @@ function [tmn,info] = tmejor(f,x,d,tk,eps,h_ini)
     end
 
 endfunction
-function [tao1,tao2,tao3,phi_1,phi_2,phi_3] = busq_tres_ptos(f,x,d,tk,t_m,K)
+function [tao1,tao2,tao3,phi_1,phi_2,phi_3] = busq_tres_ptos(f,z,d,tk,t_m,K,fz,B,x_m)
     tao1 = tk
-    phi_1 = f(x+tao1*d)
+    phi_1 = fz(z+tao1*d,x_m,B,f)
     tao2 = t_m
-    phi_2 = f(x+tao2*d)
+    phi_2 = fz(z+tao2*d,x_m,B,f)
     tao3 = tao2
     while (norm(tao3) < K)
         tao3 = tao2 + 2*(tao2 - tao1)
-        phi_3 = f(x+tao3*d)
+        phi_3 = fz(z+tao3*d,x_m,B,f)
         if (phi_3 > phi_2) 
             break
         else
@@ -52,92 +65,80 @@ function [tao1,tao2,tao3,phi_1,phi_2,phi_3] = busq_tres_ptos(f,x,d,tk,t_m,K)
 endfunction
 
 function tp = interpCuadr(t1,t2,t3,f1,f2,f3)
-t21 = t2 - t1
-t23 = t2 - t3
-c1 = t21*(f2 - f3)
-c2 = t23*(f2 - f1)
-deno = c1 - c2
-
-if abs(deno) < 1e-8
-printf('Denominador nulo.\n')
-tp = 0
-return
-end
-tp = t2 - 0.5*(t21*c1 - t23*c2)/deno
+    t21 = t2 - t1
+    t23 = t2 - t3
+    c1 = t21*(f2 - f3)
+    c2 = t23*(f2 - f1)
+    deno = c1 - c2
+    
+    if abs(deno) < 1e-8
+//    printf('Denominador nulo.\n')
+    tp = 0
+    return
+    end
+    tp = t2 - 0.5*(t21*c1 - t23*c2)/deno
 endfunction
 
-function t_opt = tres_ptos(f,x,d,tk,eps,h_ini,K)
+function t_opt = tres_ptos(f,z,d,tk,eps,h_ini,K,fz,B,x_m)
     while (1) //while true
-    [t_m,info] = tmejor(f,x,d,tk,eps,h_ini)
-    disp(info,"info:")
+    [t_m,info] = tmejor(f,z,d,tk,eps,h_ini,fz,B,x_m)
+//    disp(info,"info:")
     if (info == 0)
         t_opt = -1
-        disp("Parece que no hay minimizador")
+//        disp("Parece que no hay minimizador")
         break
     else
-        [tao1,tao2,tao3,phi_1,phi_2,phi_3] = busq_tres_ptos(f,x,d,tk,t_m,K)
+        [tao1,tao2,tao3,phi_1,phi_2,phi_3] = busq_tres_ptos(f,z,d,tk,t_m,K,fz,B,x_m)
         tp = interpCuadr(tao1,tao2,tao3,phi_1,phi_2,phi_3)
-        if (f(x+t_m*d) < f(x+tp*d))
+        if (fz(z+t_m*d,x_m,B,f) < fz(z+tp*d,x_m,B,f))
             t_opt = t_m
         else
             t_opt = tp
         end
-        disp(t_opt,"toptimo")
+//        disp(t_opt,"toptimo")
         tk = t_opt
     end
     
     end
 endfunction
-function topt = backtracking(f,x,d)
+function topt = backtracking(f,z,d,fz,B,x_m)
     alpha = 0.25
     bet = 0.5
     topt = 1
-    gr = numderivative(f,x)
+    gr = numderivative(fz,z)
     gr = gr'
-    while (f(x+t*d) > f(x) + alpha*topt*gr'*d)
-        topt = bet*t
+    while (fz(z+topt*d,x_m,B,f) > fz(z,x_m,B,f) + alpha*topt*gr'*d)
+        topt = bet*topt
     end
 endfunction
 
-/*A = [1 2 3 4]
-b = [10]
-//x_m = [10;0;0;0]
-x_m = [0;0;0;2.5]
-B = [-2 -3 -4; 1 0 0;0 1 0;0 0 1]
-z = [0;0;0]*/
-
-//Como calcular B,xm,z
 function x = M_N_Q_I(f,A,b,Max,e) // Metodo de Newton sin desigualdades
-    //x_m = A\b
-    x_m = [0;4;-2;0; 0]
-    //B = kernel(A)
-    B = [1 0 0;0 -3 0; 0 4 -1; 0  1 0; 0 0 1]
+    x_m = A\b
+    B = kernel(A)
     z = zeros(size(B)(2),1)
+    estado = 1
     for i = 1:Max
-        disp(i,"i----------------------------")
-        disp(z,"z")
+//        disp(i,"i")
         x = x_m + B*z
-        disp(f(x),"f")
-        disp(x,"x")
-        [gr,H] = numderivative(f,x_m + B*z,[],[],"blockmat")
+        [gr,H] = numderivative(f,x,[],[],"blockmat")
         gr = gr'
-        disp(gr,"gr")
-        disp(H,"H")
-        if norm(gr) < e then 
+        grz = B' * gr
+        Hz = B' * H * B
+//        disp(norm(grz),"norm_grz")
+        if norm(grz) < e then 
+            estado = 0
             break
         else
-            grz = B' * gr
-            Hz = B' * H * B
             d = -Hz\grz
-            disp(grz,"grz")
-            disp(Hz,"Hz")
-            if f(x_m + B*(z + d)) < f(x_m + B*z)then
+//            disp(grz,"grz")
+//            disp(Hz,"Hz")
+            if f(x_m+B*(z + d)) < f(x_m + B*z)then
                 z = z + d
-                disp(z,"z")
-            elseif grz'*d < 0 then
-                tk_t = tres_ptos(f,x,d,0,0.001,10,1e6)
-                tk_b = backtracking(f,x,d)
-                if tk_m == -1 then
+//            disp(z,"z")
+        elseif grz'*d < 0 then
+                tk_t = tres_ptos(f,z,d,0,0.001,10,1e6,fz,B,x_m)
+                tk_b = backtracking(f,z,d)
+                if tk_t == -1 then
                     z = z + tk_b * d
                 else
                     z = z + tk_t * d
@@ -145,6 +146,10 @@ function x = M_N_Q_I(f,A,b,Max,e) // Metodo de Newton sin desigualdades
             end
         end
     end
+    if(estado) then
+        disp "No hay minimizador"
+    end
 endfunction
 
-xsol = M_N_Q_I(f,A,b,8,0.001)
+xsol = M_N_Q_I(f,A5,b5,10,0.00001)
+disp(xsol)
